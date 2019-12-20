@@ -58,22 +58,22 @@ public class Drivetrain extends Subsystem {
     @Override
     public void init() {
         lDriveMaster.configFactoryDefault();
-		rDriveMaster.configFactoryDefault();
-		lDriveSlave.configFactoryDefault();
-		rDriveSlave.configFactoryDefault();
+	rDriveMaster.configFactoryDefault();
+	lDriveSlave.configFactoryDefault();
+	rDriveSlave.configFactoryDefault();
 
-		lDriveSlave.follow(lDriveMaster);
+	lDriveSlave.follow(lDriveMaster);
         rDriveSlave.follow(rDriveMaster);
         
         lDriveMaster.setInverted(false);
-		rDriveMaster.setInverted(true); 
-		lDriveSlave.setInverted(InvertType.FollowMaster);
+	rDriveMaster.setInverted(true); 
+	lDriveSlave.setInverted(InvertType.FollowMaster);
         rDriveSlave.setInverted(InvertType.FollowMaster);
     
         lDriveMaster.setNeutralMode(NeutralMode.Coast);
         rDriveMaster.setNeutralMode(NeutralMode.Coast);
 
-		_drive.setRightSideInverted(false);
+	_drive.setRightSideInverted(false);
     }
 
     public void switchModeCoast() {
