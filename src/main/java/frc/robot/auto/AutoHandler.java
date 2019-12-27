@@ -7,12 +7,17 @@
 
 package frc.robot.auto;
 
+import java.util.ArrayList;
+
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.Watchdog;
 import frc.robot.subsystem.Drivetrain;
 import frc.robot.util.CyberPID;
 
 public class AutoHandler {
     private Drivetrain drive;
+
+    private CyberPID pidController = new CyberPID();
 
     private static final byte TEST_STATE_MACHINE = 1;
     private static final byte TEST_STATE_MACHINE_V2 = 2;
@@ -22,10 +27,10 @@ public class AutoHandler {
     private static final byte WAIT_STATE = 3;
 
     private byte currentState;
-    private byte currentStateIndex;
-    private byte[] nextStateArray;
+    private byte currentStateIndex = 0;
+    private byte[] nextStateArray = new byte[255];
 
-    private Timer mTimer;
+    private Timer mTimer = new Timer();
     private Boolean mStop = false;
 
     private static AutoHandler mInstance = null;
@@ -42,19 +47,22 @@ public class AutoHandler {
       currentStateIndex = 0;
       setCurrentState(WAIT_STATE);
       setNextStateArray(selection);
-
+      
       mTimer.start();
     }
  
     public void setNextStateArray(byte mode) {
       byte stateCounter = 0;
       if (TEST_STATE_MACHINE == mode) {
+        System.out.println("Auto Selected");
         nextStateArray[stateCounter] = DRIVE_FORWARD;
         stateCounter++;
         nextStateArray[stateCounter] = WAIT_STATE;
       } else if (TEST_STATE_MACHINE_V2 == mode) {
         nextStateArray[stateCounter] = DRIVE_BACKWARD;
       }
+      setCurrentState(nextStateArray[0]);
+      
     }
 
     public void setCurrentState(byte state) {
@@ -77,16 +85,20 @@ public class AutoHandler {
     }
 
     private void driveToDistance(double distance) {
-      CyberPID pidController = new CyberPID();
+      pidController.setSetpoint(500);
       Boolean cond = infLoopChecker();
+      boolean onTarget = pidController.onTarget(this.drive.getLeftEncoderDis());
       
-      while (!pidController.onTarget(this.drive.getRightEncoderDis()) && !cond) {
+     if (!onTarget) {
+        onTarget = pidController.onTarget(this.drive.getRightEncoderDis());
         cond = infLoopChecker();
         double value = pidController.getOutput(this.drive.getRightEncoderDis());
-        this.drive.drive(value, value);
+        this.drive.drive(value * .5, value * .5);
+      } else {
+        this.drive.drive(0, 0);
+        currentStateIndex++;
+        setCurrentState(nextStateArray[currentStateIndex]);
       }
-
-      currentStateIndex++;
-      setCurrentState(nextStateArray[currentStateIndex]);
+      
     }
 }
