@@ -31,7 +31,7 @@ public class Robot extends TimedRobot {
   private AutoHandler mAutoHanlder;
   private AutoSelector mAutoSelector;
 
-  private byte mAutoMode;
+  private byte mAutoMode = 1;
   
   @Override
   public void robotInit() {
@@ -61,7 +61,7 @@ public class Robot extends TimedRobot {
   public void autonomousInit() {
     
     CrashTracker.logAutoInit();
-    mAutoMode = mAutoSelector.getAutoMode();
+    //mAutoMode = mAutoSelector.getAutoMode();
 
     mSubsystemManager.zeroAll();
     mAutoHanlder.init(mAutoMode);
@@ -75,7 +75,7 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopInit() {
     CrashTracker.logTeleopInit();
-
+    mTeleopLooper.init();
     mSubsystemManager.checkAllSystem();
   }
 
