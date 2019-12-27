@@ -7,6 +7,8 @@
 
 package frc.robot.util;
 
+import edu.wpi.first.wpilibj.Timer;
+
 /**
  * Custom PID Implementation
  * Dinoyan Ganeshalingam
@@ -33,7 +35,9 @@ public class CyberPID {
 
 
     public CyberPID() {
-
+        this.kP = 0.01;
+        this.kI = 0.01;
+        this.kD = 0.01;
     } 
 
     public CyberPID(double kP, double kI, double kD) {
@@ -79,7 +83,7 @@ public class CyberPID {
 
     public boolean onTarget(double curr) {
 
-        if (Math.abs(curr) < kTolerance) {
+        if (Math.abs(this.mSetpoint - curr) < kTolerance) {
             mCount++;
             mTarget = mCount > mFinishCount;
         } else {
@@ -89,8 +93,9 @@ public class CyberPID {
         return mTarget;
     }
 
-    public synchronized double getOutput(double curr) {
+    public double getOutput(double curr) {
         this.mError = this.mSetpoint - curr;
+        
         this.mIntegral += (mError * kResetTime);
         
         if ((mError == 0) || (mError > mSetpoint)) {
@@ -102,13 +107,12 @@ public class CyberPID {
 
         this.mOutput = this.kP * mError + this.kI * mIntegral +  this.kD *mDerivative;
         
-        // Thread.sleep(20);
         
         if (mOutput < -1) {
             mOutput = -1;
         } else if (mOutput > 1) {
             mOutput = 1;
         }
-        return this.mOutput;
+        return -this.mOutput;
     }
 }
