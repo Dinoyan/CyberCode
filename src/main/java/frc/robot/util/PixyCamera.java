@@ -21,9 +21,19 @@ public class PixyCamera {
 
     double sigX;
     double sigY;
+    double sigWidth;
+    double sigHeight;
 
     private Pixy2 pixy;
+    private static PixyCamera instance = null;
     
+    public static PixyCamera getInstance() {
+        if (instance == null) {
+            instance = new PixyCamera();
+        }
+        return instance;
+    } 
+
     public PixyCamera() {
         pixy = Pixy2.createInstance(LinkType.SPI);
         pixy.init();
@@ -61,7 +71,28 @@ public class PixyCamera {
         if (block != null) {
             this.sigY = block.getY();
         }
-
         return this.sigY;
+    }
+
+    public double getWidth() {
+        this.sigWidth = 0;
+        Block block = getLargestBlock();
+
+        if (block != null) {
+            this.sigWidth = block.getWidth();
+        }
+
+        return this.sigWidth;
+    }
+
+    public double getHeight() {
+        this.sigHeight = 0;
+        Block block = getLargestBlock();
+
+        if (block != null) {
+            this.sigWidth = block.getHeight();
+        }
+
+        return this.sigHeight;
     }
 }
