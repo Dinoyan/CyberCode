@@ -7,10 +7,9 @@
 
 package frc.robot.auto;
 
-import java.util.ArrayList;
 
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.Watchdog;
+import frc.robot.Constants;
 import frc.robot.subsystem.Drivetrain;
 import frc.robot.util.CyberPID;
 
@@ -18,6 +17,8 @@ public class AutoHandler {
     private Drivetrain drive;
 
     private CyberPID pidController = new CyberPID();
+    private CyberPID turnPID = new CyberPID();
+    private CyberPID shooterPID = new CyberPID();
 
     private static final byte TEST_STATE_MACHINE = 1;
     private static final byte TEST_STATE_MACHINE_V2 = 2;
@@ -25,6 +26,8 @@ public class AutoHandler {
     private static final byte DRIVE_FORWARD = 1;
     private static final byte DRIVE_BACKWARD = 2;
     private static final byte WAIT_STATE = 3;
+    private static final byte SHOOT_STATE = 4;
+    private static final byte TURN_STATE = 5;
 
     private byte currentState;
     private byte currentStateIndex = 0;
@@ -54,15 +57,16 @@ public class AutoHandler {
     public void setNextStateArray(byte mode) {
       byte stateCounter = 0;
       if (TEST_STATE_MACHINE == mode) {
-        System.out.println("Auto Selected");
         nextStateArray[stateCounter] = DRIVE_FORWARD;
         stateCounter++;
         nextStateArray[stateCounter] = WAIT_STATE;
+        stateCounter++;
+        nextStateArray[stateCounter] = TURN_STATE;
       } else if (TEST_STATE_MACHINE_V2 == mode) {
         nextStateArray[stateCounter] = DRIVE_BACKWARD;
       }
-      setCurrentState(nextStateArray[0]);
-      
+
+      setCurrentState(nextStateArray[0]);      
     }
 
     public void setCurrentState(byte state) {
@@ -74,31 +78,63 @@ public class AutoHandler {
         this.driveToDistance(3);
       } else if (currentState == WAIT_STATE) {
         // do nothing
+      } else if (currentState == SHOOT_STATE) {
+          this.shoot(3);
+      } else if (currentState == TURN_STATE) {
+        this.turn(90);
       }
     }
 
     private boolean infLoopChecker() {
-      if (mTimer.get() > 15) {
+      if (mTimer.get() > Constants.AUTO_TIME) {
         this.mStop = true;
       }
       return this.mStop;
     }
 
     private void driveToDistance(double distance) {
-      pidController.setSetpoint(500);
+      pidController.setSetpoint(distance);
       Boolean cond = infLoopChecker();
+      
       boolean onTarget = pidController.onTarget(this.drive.getLeftEncoderDis());
       
-     if (!onTarget) {
-        onTarget = pidController.onTarget(this.drive.getRightEncoderDis());
-        cond = infLoopChecker();
-        double value = pidController.getOutput(this.drive.getRightEncoderDis());
-        this.drive.drive(value * .5, value * .5);
-      } else {
-        this.drive.drive(0, 0);
-        currentStateIndex++;
-        setCurrentState(nextStateArray[currentStateIndex]);
+      if (!cond) {
+        if (!onTarget) {
+          onTarget = pidController.onTarget(this.drive.getRightEncoderDis());
+          cond = infLoopChecker();
+          double value = pidController.getOutput(this.drive.getRightEncoderDis());
+          this.drive.drive(value * .5, value * .5);
+        } else {
+            this.drive.drive(0, 0);
+            currentStateIndex++;
+            setCurrentState(nextStateArray[currentStateIndex]);
+        }
       }
-      
+      pidController.reset();
+    }
+
+    private void shoot(double speed) {
+      this.shooterPID.setSetpoint(speed);
+    }
+
+    private void turn(double angle) {
+      turnPID.setSetpoint(angle);
+      boolean cond = infLoopChecker();
+
+      boolean onTarget = turnPID.onTarget(this.drive.getAngle());
+
+      if (!cond) {
+        if (!onTarget) {
+          onTarget = pidController.onTarget(this.drive.getAngle());
+          cond = infLoopChecker();
+          double value = pidController.getOutput(this.drive.getAngle());
+          this.drive.drive(-value * .5, value * .5);
+        } else {
+            this.drive.drive(0, 0);
+            currentStateIndex++;
+            setCurrentState(nextStateArray[currentStateIndex]);
+        }
+      }
+      pidController.reset();
     }
 }
