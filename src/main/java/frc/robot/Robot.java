@@ -14,6 +14,7 @@ import frc.robot.subsystem.Drivetrain;
 import frc.robot.subsystem.Shooter;
 import frc.robot.util.CrashTracker;
 import frc.robot.teleop.TeleopLooper;
+import frc.robot.test.TestLooper;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -31,6 +32,9 @@ public class Robot extends TimedRobot {
   private AutoHandler mAutoHanlder;
   private AutoSelector mAutoSelector;
 
+  // test class
+  private TestLooper mTest;
+
   private byte mAutoMode = 1;
   
   @Override
@@ -39,9 +43,12 @@ public class Robot extends TimedRobot {
     this.mDrivetrain = Drivetrain.getInstance();
     this.mShooter = Shooter.getInstance();
     this.mSubsystemManager = SubsystemManager.getInstance();
-    this.mTeleopLooper = new TeleopLooper();
+    this.mTeleopLooper = TeleopLooper.getInstance();
     this.mAutoHanlder = AutoHandler.getInstance();
     this.mAutoSelector = AutoSelector.getInstance();
+
+    // test instance
+    this.mTest = TestLooper.getInstance();
  
     CrashTracker.logRobotInit();
   
@@ -61,7 +68,7 @@ public class Robot extends TimedRobot {
   public void autonomousInit() {
     
     CrashTracker.logAutoInit();
-    //mAutoMode = mAutoSelector.getAutoMode();
+    mAutoMode = mAutoSelector.getAutoMode();
 
     mSubsystemManager.zeroAll();
     mAutoHanlder.init(mAutoMode);
@@ -75,15 +82,16 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopInit() {
     CrashTracker.logTeleopInit();
-    mTeleopLooper.init();
     mSubsystemManager.checkAllSystem();
+
+    mTeleopLooper.init();
+    
   }
 
   @Override
   public void teleopPeriodic() {
     mTeleopLooper.driveEnabledLoop();
     mTeleopLooper.superstructureEnabledLoop();
-  
   }
 
   @Override
@@ -95,11 +103,15 @@ public class Robot extends TimedRobot {
   @Override
   public void testInit() {
    CrashTracker.logTestInit();
+  
+   mTest.testInit();
   }
   
   @Override
   public void testPeriodic() {
     CrashTracker.SubsystemsDisgonitics();
+    
+    mTest.testLooper();
   }
 
 }
