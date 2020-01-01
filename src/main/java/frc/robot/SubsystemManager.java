@@ -12,9 +12,6 @@ import java.util.List;
 
 import frc.robot.subsystem.Subsystem;
 
-/**
- *  
- */
 public class SubsystemManager {
 
     private static SubsystemManager mInstance = null;
@@ -28,12 +25,16 @@ public class SubsystemManager {
         return mInstance;
     }
 
-    public void outPutDashboard() {
+    public void init() {
+        mAllSubsystem.forEach(Subsystem::init);
+    }
 
+    public void outPutDashboard() {
+        mAllSubsystem.forEach(Subsystem::updateDashboard);
     }
 
     public void stop() {
-
+        mAllSubsystem.forEach(Subsystem::stop);
     }
 
     public void zeroAll() {
